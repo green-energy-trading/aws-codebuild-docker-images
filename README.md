@@ -4,28 +4,28 @@ This repository holds Dockerfiles of official AWS CodeBuild curated Docker image
 
 ![Build Status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiSkJibVVQVEpvUms1cmw3YVlnU1hSdkpBQ0c5SFgyTkJXMFBFdEU2SWtySHREcUlUVlRhbW4zMEd3NlhsOWIzUWgvRkxhUWVSSTFPZGNNakNHRVNLalY0PSIsIml2UGFyYW1ldGVyU3BlYyI6IlV0QjBRZXRvS0F5dE5vbTciLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
 
-The master branch will sometimes have changes that are still in the process of being released in AWS CodeBuild.  See the latest released versions of the Dockerfiles ![here](https://github.com/aws/aws-codebuild-docker-images/releases).
+The master branch will sometimes have changes that are still in the process of being released in AWS CodeBuild.  See the latest released versions of the Dockerfiles [here](https://github.com/aws/aws-codebuild-docker-images/releases)
 
 ### How to build Docker images
 
-Steps to build Ruby 2.3.1 image
+Steps to build Standard 7.0 image
 
 * Run `git clone https://github.com/aws/aws-codebuild-docker-images.git` to download this repository to your local machine
-* Run `cd ubuntu/ruby/2.3.1` to change the directory in your local workspace. This is the location of the Ruby 2.3.1 Dockerfile with Ubuntu 14.04 base.
-* Run `docker build -t aws/codebuild/ruby:2.3.1 .` to build Docker image locally
+* Run `cd aws-codebuild-docker-images/ubuntu/standard/7.0` to change the directory in your local workspace. This is the location of the Standard 7.0 Dockerfile with Ubuntu base.
+* Run `docker build -t aws/codebuild/standard:7.0 .` to build Docker image locally
 
 To poke around in the image interactively, build it and run:
-`docker run -it --entrypoint sh aws/codebuild/ruby:2.3.1 -c bash`
+`docker run -it --entrypoint sh aws/codebuild/standard:7.0 -c bash`
 
 To let the Docker daemon start up in the container, build it and run:
-`docker run -it --privileged aws/codebuild/ruby:2.3.1 bash`
+`docker run -it --privileged aws/codebuild/standard:7.0 bash`
 
 ```
 $ git clone https://github.com/aws/aws-codebuild-docker-images.git
 $ cd aws-codebuild-docker-images
-$ cd ubuntu/ruby/2.3.1
-$ docker build -t aws/codebuild/ruby:2.3.1 .
-$ docker run -it --entrypoint sh aws/codebuild/ruby:2.3.1 -c bash
+$ cd ubuntu/standard/7.0
+$ docker build -t aws/codebuild/standard:7.0 .
+$ docker run -it --entrypoint sh aws/codebuild/standard:7.0 -c bash
 ```
 
 ### Image maintenance
@@ -34,20 +34,34 @@ Some of the images in this repository are no longer actively maintained by AWS C
 
 The following images are actively maintained by AWS CodeBuild, and are listed in the CodeBuild console.
 
-+ [android-java-8 26.1.1](ubuntu/android-java-8/26.1.1)
-+ [docker 17.09.0](ubuntu/docker/17.09.0)
-+ [docker 18.09.0](ubuntu/docker/18.09.0)
-+ [dot-net core-2.1](ubuntu/dot-net/core-2.1)
-+ [golang 1.10](ubuntu/golang/1.10)
-+ [golang 1.11](ubuntu/golang/1.11)
-+ [java openjdk-11](ubuntu/java/openjdk-11)
-+ [java openjdk-8](ubuntu/java/openjdk-8)
-+ [java openjdk-9](ubuntu/java/openjdk-9)
-+ [nodejs 10.14.1](ubuntu/nodejs/10.14.1)
-+ [nodejs 8.11.0](ubuntu/nodejs/8.11.0)
-+ [php 7.1](ubuntu/php/7.1)
-+ [python 3.6.5](ubuntu/python/3.6.5)
-+ [python 3.7.1](ubuntu/python/3.7.1)
-+ [ruby 2.5.3](ubuntu/ruby/2.5.3)
-+ [ubuntu-base 14.04](ubuntu/ubuntu-base/14.04)
-
++ [standard 5.0](ubuntu/standard/5.0)
++ [standard 6.0](ubuntu/standard/6.0)
++ [standard 7.0](ubuntu/standard/7.0)
++ [amazonlinux2-x86_64-standard:4.0](al2/x86_64/standard/4.0)
++ [amazonlinux2-x86_64-standard:5.0](al2/x86_64/standard/5.0)
++ [amazonlinux2-x86_64-standard:corretto8](al2/x86_64/standard/corretto8)
++ [amazonlinux2-x86_64-standard:corretto11](al2/x86_64/standard/corretto11)
++ [amazonlinux2-aarch64-standard:2.0](al2/aarch64/standard/2.0)
++ [amazonlinux2-aarch64-standard:3.0](al2/aarch64/standard/3.0)
++ [amazonlinux-x86_64-lambda-standard:corretto11](al-lambda/x86_64/corretto11)
++ [amazonlinux-x86_64-lambda-standard:corretto17](al-lambda/x86_64/corretto17)
++ [amazonlinux-x86_64-lambda-standard:corretto21](al-lambda/x86_64/corretto21)
++ [amazonlinux-x86_64-lambda-standard:dotnet6](al-lambda/x86_64/dotnet6)
++ [amazonlinux-x86_64-lambda-standard:dotnet8](al-lambda/x86_64/dotnet8)
++ [amazonlinux-x86_64-lambda-standard:go1.21](al-lambda/x86_64/go1.21)
++ [amazonlinux-x86_64-lambda-standard:nodejs18](al-lambda/x86_64/nodejs18)
++ [amazonlinux-x86_64-lambda-standard:nodejs20](al-lambda/x86_64/nodejs20)
++ [amazonlinux-x86_64-lambda-standard:python3.11](al-lambda/x86_64/python3.11)
++ [amazonlinux-x86_64-lambda-standard:python3.12](al-lambda/x86_64/python3.12)
++ [amazonlinux-x86_64-lambda-standard:ruby3.2](al-lambda/x86_64/ruby3.2)
++ [amazonlinux-aarch64-lambda-standard:corretto11](al-lambda/aarch64/corretto11)
++ [amazonlinux-aarch64-lambda-standard:corretto17](al-lambda/aarch64/corretto17)
++ [amazonlinux-aarch64-lambda-standard:corretto21](al-lambda/aarch64/corretto21)
++ [amazonlinux-aarch64-lambda-standard:dotnet6](al-lambda/aarch64/dotnet6)
++ [amazonlinux-aarch64-lambda-standard:dotnet8](al-lambda/aarch64/dotnet8)
++ [amazonlinux-aarch64-lambda-standard:go1.21](al-lambda/aarch64/go1.21)
++ [amazonlinux-aarch64-lambda-standard:nodejs18](al-lambda/aarch64/nodejs18)
++ [amazonlinux-aarch64-lambda-standard:nodejs20](al-lambda/aarch64/nodejs20)
++ [amazonlinux-aarch64-lambda-standard:python3.11](al-lambda/aarch64/python3.11)
++ [amazonlinux-aarch64-lambda-standard:python3.12](al-lambda/aarch64/python3.12)
++ [amazonlinux-aarch64-lambda-standard:ruby3.2](al-lambda/aarch64/ruby3.2)

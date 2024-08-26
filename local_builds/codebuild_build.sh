@@ -34,14 +34,20 @@ function usage {
     echo "  -i        Used to specify the customer build container image."
     echo "  -a        Used to specify an artifact output directory."
     echo "Options:"
-    echo "  -l        Used to override the default local agent image."
-    echo "  -s        Used to specify a source directory. Defaults to the current working directory."
+    echo "  -l IMAGE  Used to override the default local agent image."
+    echo "  -r        Used to specify a report output directory."
+    echo "  -s        Used to specify source information. Defaults to the current working directory for primary source."
+    echo "               * First (-s) is for primary source"
+    echo "               * Use additional (-s) in <sourceIdentifier>:<sourceLocation> format for secondary source"
+    echo "               * For sourceIdentifier, use a value that is fewer than 128 characters and contains only alphanumeric characters and underscores"
     echo "  -c        Use the AWS configuration and credentials from your local host. This includes ~/.aws and any AWS_* environment variables."
-    echo "  -b        Used to specify a buildspec override file. Defaults to buildspec.yml in the source directory."
-    echo "  -e        Used to specify a file containing environment variables."
+    echo "  -p        Used to specify the AWS CLI Profile."
+    echo "  -b FILE   Used to specify a buildspec override file. Defaults to buildspec.yml in the source directory."
     echo "  -m        Used to mount the source directory to the customer build container directly."
-    echo "            Environment variable file format:"
-    echo "               * Expects each line to be in VAR=VAL format"
+    echo "  -d        Used to run the build container in docker privileged mode."
+    echo "  -e FILE   Used to specify a file containing environment variables."
+    echo "            (-e) File format expectations:"
+    echo "               * Each line is in VAR=VAL format"
     echo "               * Lines beginning with # are processed as comments and ignored"
     echo "               * Blank lines are ignored"
     echo "               * File can be of type .env or .txt"
@@ -53,17 +59,21 @@ image_flag=false
 artifact_flag=false
 awsconfig_flag=false
 mount_src_dir_flag=false
+docker_privileged_mode_flag=false
 
-while getopts "cmi:a:s:b:e:l:h" opt; do
+while getopts "cmdi:a:r:s:b:e:l:p:h" opt; do
     case $opt in
         i  ) image_flag=true; image_name=$OPTARG;;
         a  ) artifact_flag=true; artifact_dir=$OPTARG;;
+        r  ) report_dir=$OPTARG;;
         b  ) buildspec=$OPTARG;;
         c  ) awsconfig_flag=true;;
         m  ) mount_src_dir_flag=true;;
-        s  ) source_dir=$OPTARG;;
+        d  ) docker_privileged_mode_flag=true;;
+        s  ) source_dirs+=("$OPTARG");;
         e  ) environment_variable_file=$OPTARG;;
         l  ) local_agent_image=$OPTARG;;
+        p  ) aws_profile=$OPTARG;;
         h  ) usage; exit;;
         \? ) echo "Unknown option: -$OPTARG" >&2; exit 1;;
         :  ) echo "Missing option argument for -$OPTARG" >&2; exit 1;;
@@ -86,13 +96,6 @@ then
     exit 1
 fi
 
-if [ -z "$source_dir" ]
-then
-    source_dir=$(allOSRealPath $PWD)
-else
-    source_dir=$(allOSRealPath $source_dir)
-fi
-
 docker_command="docker run -it "
 if isOSWindows
 then
@@ -102,12 +105,33 @@ else
 fi
 
 docker_command+="\"IMAGE_NAME=$image_name\" -e \
-    \"ARTIFACTS=$(allOSRealPath $artifact_dir)\" -e \
-    \"SOURCE=$source_dir\""
+    \"ARTIFACTS=$(allOSRealPath "$artifact_dir")\""
+
+if [ -n "$report_dir" ]
+then
+    docker_command+=" -e \"REPORTS=$(allOSRealPath "$report_dir")\""
+fi
+
+if [ -z "$source_dirs" ]
+then
+    docker_command+=" -e \"SOURCE=$(allOSRealPath "$PWD")\""
+else
+    for index in "${!source_dirs[@]}"; do
+        if [ $index -eq 0 ]
+        then
+            docker_command+=" -e \"SOURCE=$(allOSRealPath "${source_dirs[$index]}")\""
+        else
+            identifier=${source_dirs[$index]%%:*}
+            src_dir=$(allOSRealPath "${source_dirs[$index]#*:}")
+
+            docker_command+=" -e \"SECONDARY_SOURCE_$index=$identifier:$src_dir\""
+        fi
+    done
+fi
 
 if [ -n "$buildspec" ]
 then
-    docker_command+=" -e \"BUILDSPEC=$(allOSRealPath $buildspec)\""
+    docker_command+=" -e \"BUILDSPEC=$(allOSRealPath "$buildspec")\""
 fi
 
 if [ -n "$environment_variable_file" ]
@@ -132,12 +156,23 @@ then
     else
         docker_command+=" -e \"AWS_CONFIGURATION=NONE\""
     fi
+
+    if [ -n "$aws_profile" ]
+    then
+        docker_command+=" -e \"AWS_PROFILE=$aws_profile\""
+    fi
+
     docker_command+="$(env | grep ^AWS_ | while read -r line; do echo " -e \"$line\""; done )"
 fi
 
 if $mount_src_dir_flag
 then
     docker_command+=" -e \"MOUNT_SOURCE_DIRECTORY=TRUE\""
+fi
+
+if $docker_privileged_mode_flag
+then
+    docker_command+=" -e \"DOCKER_PRIVILEGED_MODE=TRUE\""
 fi
 
 if isOSWindows
@@ -147,7 +182,12 @@ else
     docker_command+=" -e \"INITIATOR=$USER\""
 fi
 
-docker_command+=" amazon/aws-codebuild-local:latest"
+if [ -n "$local_agent_image" ]
+then
+    docker_command+=" $local_agent_image"
+else
+    docker_command+=" public.ecr.aws/codebuild/local-builds:latest"
+fi
 
 # Note we do not expose the AWS_SECRET_ACCESS_KEY or the AWS_SESSION_TOKEN
 exposed_command=$docker_command
